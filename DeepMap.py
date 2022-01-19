@@ -5,12 +5,14 @@ import os
 import graph_canonicalization as gc
 from scipy.sparse import load_npz
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 import keras
 from keras import backend as K
 from keras import optimizers
@@ -25,19 +27,19 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
-from keras.utils import multi_gpu_model
+# from keras.utils import multi_gpu_model
 from multiprocessing import Pool
-from keras.utils import Sequence
+from tensorflow.keras.utils import Sequence
 
 # config = ConfigProto()
 # sess = tf.Session(config=config)
 
 #config = tf.ConfigProto(device_count={'CPU': 20})
 
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
-keras.backend.tensorflow_backend.set_session(sess)
+# config = tf.compat.v1.ConfigProto()
+# config.gpu_options.allow_growth = True
+# sess = tf.Session(config=config)
+# keras.backend.tensorflow_backend.set_session(sess)
 
 
 def get_model(filter_size, num_instance, feature_size, num_class):
@@ -94,9 +96,9 @@ def train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class, 
 
 if __name__ == "__main__":
     # location to save the results
-    OUTPUT_DIR = "/data/home/weiye/Wei/GCNN/results/"
+    OUTPUT_DIR = "./results/"
     # location of the datasets
-    DATA_DIR = "/data/home/weiye/Wei/GCNN/datasets/"
+    DATA_DIR = "./datasets/"
 
     # hyperparameters
     # ds_name = sys.argv[4] # dataset name
