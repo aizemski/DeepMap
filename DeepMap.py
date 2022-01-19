@@ -7,8 +7,8 @@ from scipy.sparse import load_npz
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 import tensorflow as tf
 import keras
@@ -16,7 +16,7 @@ from keras import backend as K
 from keras import optimizers
 from keras.models import Sequential, Model
 from keras.models import load_model
-from keras.layers import Input, Flatten, Dense, Dropout, Conv1D,\
+from keras.layers import Input, Flatten, Dense, Dropout, Conv1D, \
     Lambda, GlobalMaxPooling1D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization, Activation, Concatenate
 from keras import regularizers
 from keras.callbacks import LearningRateScheduler, EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
@@ -32,7 +32,7 @@ from keras.utils import Sequence
 # config = ConfigProto()
 # sess = tf.Session(config=config)
 
-#config = tf.ConfigProto(device_count={'CPU': 20})
+# config = tf.ConfigProto(device_count={'CPU': 20})
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -73,7 +73,6 @@ def get_callbacks(patience_lr):
 
 
 def train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class, batch_size, EPOCHS, filter_size):
-
     X_val = [X[id].toarray() for id in test_idx]
     y_val = y[test_idx, :]
 
@@ -83,8 +82,8 @@ def train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class, 
     model.summary()
 
     result = model.fit(x=np.array([X[id].toarray() for id in train_idx]), y=y[train_idx, :], batch_size=batch_size,
-                        epochs=EPOCHS, verbose=1, callbacks=callbacks,
-                        validation_data=[np.array(X_val), y_val], shuffle=True)
+                       epochs=EPOCHS, verbose=1, callbacks=callbacks,
+                       validation_data=[np.array(X_val), y_val], shuffle=True)
 
     val_acc = result.history['val_acc']
     acc = result.history['acc']
@@ -100,7 +99,8 @@ if __name__ == "__main__":
 
     # hyperparameters
     # ds_name = sys.argv[4] # dataset name
-    dataset = ['Synthie', 'BZR_MD', 'COX2_MD', 'DHFR', 'PTC_MM', 'PTC_MR', 'PTC_FM', 'PTC_FR', 'ENZYMES', 'KKI', 'IMDB-BINARY', 'IMDB-MULTI']
+    dataset = ['Synthie', 'BZR_MD', 'COX2_MD', 'DHFR', 'PTC_MM', 'PTC_MR', 'PTC_FM', 'PTC_FR', 'ENZYMES', 'KKI',
+               'IMDB-BINARY', 'IMDB-MULTI']
     hasnodelabel = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0]
     hasnodeattribute = [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0]
 
@@ -134,8 +134,10 @@ if __name__ == "__main__":
 
         start = time.time()
 
-        X, feature_size, num_sample = gc.canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type, graphlet_size, max_h)
-        folds = list(StratifiedKFold(n_splits=kfolds, shuffle=True, random_state=7).split(np.zeros(num_graphs), graph_labels))
+        X, feature_size, num_sample = gc.canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type,
+                                                          graphlet_size, max_h)
+        folds = list(
+            StratifiedKFold(n_splits=kfolds, shuffle=True, random_state=7).split(np.zeros(num_graphs), graph_labels))
 
         encoder = LabelEncoder()
         encoder.fit(graph_labels)
@@ -145,8 +147,9 @@ if __name__ == "__main__":
         for j, (train_idx, test_idx) in enumerate(folds):
             print('\nFold ', j)
 
-            scores_val_acc, scores_acc = train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class, batch_size, EPOCHS, filter_size)
-            #print(scores)
+            scores_val_acc, scores_acc = train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class,
+                                                     batch_size, EPOCHS, filter_size)
+            # print(scores)
             val_acc[j, :] = scores_val_acc
             acc[j, :] = scores_acc
 
