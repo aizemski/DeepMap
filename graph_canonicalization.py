@@ -7,12 +7,19 @@ from scipy.sparse import csc_matrix
 from scipy.sparse import lil_matrix
 
 
+def node_val(G: nx.Graph):
+    val = {}
+    for n, ngs in G.adjacency():
+        val[n] = len(ngs)
+    return val
+
+
 def compute_centrality(adj):
     n = len(adj)
     adj = adj + np.eye(n)
     cen = np.zeros(n)
     G = nx.from_numpy_matrix(adj)
-    nodes = nx.eigenvector_centrality(G, max_iter=1000, tol=1.0e-4)
+    nodes = node_val(G)
     for i in range(len(nodes)):
         cen[i] = nodes[i]
 
