@@ -126,7 +126,7 @@ if __name__ == "__main__":
         features = (1, 2)
     elif int(sys.argv[1]) == 2:
         features = (3,)
-        kfolds = 4
+        kfolds = 5
 
     for i in range(12):
 
