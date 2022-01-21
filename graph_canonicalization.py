@@ -30,7 +30,7 @@ def canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type, grap
     num_sample = 0
 
     for gidx in range(num_graphs):
-        #adj = graph_data[0][gidx]['am'].toarray()
+        # adj = graph_data[0][gidx]['am'].toarray()
         adj = graph_data[0][gidx]['am']
         n = len(adj)
         if n >= num_sample:
@@ -47,9 +47,8 @@ def canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type, grap
             label = graph_data[0][gidx]['nl'].T
             labels[gidx] = label[0]
 
-
     if feature_type == 1:
-        features= fm.graphlet_feature_map(num_graphs, graphs, graphlet_size, 20)
+        features = fm.graphlet_feature_map(num_graphs, graphs, graphlet_size, 20)
 
     elif feature_type == 2:
         features = fm.shortest_path_feature_map(num_graphs, graphs, labels)
@@ -60,13 +59,11 @@ def canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type, grap
     else:
         raise Exception("Unknown feature type!")
 
-    
     for gidx in range(num_graphs):
         path_feature = features[gidx]
         attributes[gidx] = path_feature
 
-
-    #building tree-structured filters
+    # building tree-structured filters
     all_samples = {}
 
     for gidx in range(num_graphs):

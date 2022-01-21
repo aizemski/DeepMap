@@ -1,3 +1,6 @@
+import sys
+import json
+
 import numpy as np
 import time, math
 import scipy.io as sci
@@ -11,6 +14,7 @@ from scipy.sparse import load_npz
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""
 from sklearn.model_selection import train_test_split, StratifiedKFold, KFold
 import tensorflow.compat.v1 as tf
+
 tf.disable_v2_behavior()
 
 import keras
@@ -30,6 +34,7 @@ from sklearn.utils import shuffle
 # from keras.utils import multi_gpu_model
 from multiprocessing import Pool
 from tensorflow.keras.utils import Sequence
+
 
 # config = ConfigProto()
 # sess = tf.Session(config=config)
@@ -74,6 +79,7 @@ def get_callbacks(patience_lr):
     return [reduce_lr_loss]
 
 
+# @tf.function
 def train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class, batch_size, EPOCHS, filter_size):
     X_val = [X[id].toarray() for id in test_idx]
     y_val = y[test_idx, :]
@@ -114,7 +120,8 @@ if __name__ == "__main__":
     graphlet_size = 5
     max_h = 2
 
-    feature_type = 1  # 1 (graphlet), 2 (SP), 3 (WL)
+    # print(type(sys.argv[1]), sys.argv[1])
+    # feature_type = int(sys.argv[1])  # 1 (graphlet), 2 (SP), 3 (WL)
 
     for i in range(12):
 
@@ -134,35 +141,54 @@ if __name__ == "__main__":
         val_acc = np.zeros((kfolds, EPOCHS))
         acc = np.zeros((kfolds, EPOCHS))
 
-        start = time.time()
+        for feature_type in (1, 2, 3):
+            print(f'\tFrature type: {feature_type}')
 
-        X, feature_size, num_sample = gc.canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type,
-                                                          graphlet_size, max_h)
-        folds = list(
-            StratifiedKFold(n_splits=kfolds, shuffle=True, random_state=7).split(np.zeros(num_graphs), graph_labels))
+            pre_start = time.time()
 
-        encoder = LabelEncoder()
-        encoder.fit(graph_labels)
-        encoded_Y = encoder.transform(graph_labels)
-        y = np_utils.to_categorical(encoded_Y)
+            X, feature_size, num_sample = gc.canonicalization(ds_name, graph_data, hasnl, filter_size, feature_type,
+                                                              graphlet_size, max_h)
+            folds = list(
+                StratifiedKFold(n_splits=kfolds, shuffle=True, random_state=7).split(np.zeros(num_graphs), graph_labels))
 
-        for j, (train_idx, test_idx) in enumerate(folds):
-            print('\nFold ', j)
+            pre_end = time.time()
 
-            scores_val_acc, scores_acc = train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class,
-                                                     batch_size, EPOCHS, filter_size)
-            # print(scores)
-            val_acc[j, :] = scores_val_acc
-            acc[j, :] = scores_acc
+            encoder = LabelEncoder()
+            encoder.fit(graph_labels)
+            encoded_Y = encoder.transform(graph_labels)
+            y = np_utils.to_categorical(encoded_Y)
 
-        val_acc_mean = np.mean(val_acc, axis=0) * 100
-        val_acc_std = np.std(val_acc, axis=0) * 100
-        best_epoch = np.argmax(val_acc_mean)
-        print("Average Accuracy: ")
-        print("%.2f%% (+/- %.2f%%)" % (val_acc_mean[best_epoch], val_acc_std[best_epoch]))
-        mean_acc = np.mean(acc, axis=0)
-        for i in range(len(mean_acc)):
-            print(mean_acc[i])
-        end = time.time()
+            start = time.time()
 
-        print("eclipsed time: %g" % (end - start))
+            for j, (train_idx, test_idx) in enumerate(folds):
+                print('\nFold ', j)
+
+                scores_val_acc, scores_acc = train_model(X, y, train_idx, test_idx, num_sample, feature_size, num_class,
+                                                         batch_size, EPOCHS, filter_size)
+                # print(scores)
+                val_acc[j, :] = scores_val_acc
+                acc[j, :] = scores_acc
+
+            val_acc_mean = np.mean(val_acc, axis=0) * 100
+            val_acc_std = np.std(val_acc, axis=0) * 100
+            best_epoch = np.argmax(val_acc_mean)
+            print("Average Accuracy: ")
+            print("%.2f%% (+/- %.2f%%)" % (val_acc_mean[best_epoch], val_acc_std[best_epoch]))
+            mean_acc = np.mean(acc, axis=0)
+            for i in range(len(mean_acc)):
+                print(mean_acc[i])
+            end = time.time()
+
+            with open(f'{OUTPUT_DIR}{ds_name}_{feature_type}.json', 'w') as file:
+                json.dump({
+                    'val_acc_mean': val_acc_mean.tolist(),
+                    'val_acc_std': val_acc_std.tolist(),
+                    'mean_acc': mean_acc.tolist(),
+                    'val_acc': val_acc.tolist(),
+                    'acc': acc.tolist(),
+                    'time': end-start,
+                    'pre_time': pre_end-pre_start,
+                    'kfolds': kfolds
+                }, file)
+
+            print("eclipsed time: %g" % (end - start))
