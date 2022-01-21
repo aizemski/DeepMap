@@ -122,6 +122,11 @@ if __name__ == "__main__":
 
     # print(type(sys.argv[1]), sys.argv[1])
     # feature_type = int(sys.argv[1])  # 1 (graphlet), 2 (SP), 3 (WL)
+    if int(sys.argv[1]) == 1:
+        features = (1, 2)
+    elif int(sys.argv[1]) == 2:
+        features = (3,)
+        kfolds = 4
 
     for i in range(12):
 
@@ -141,7 +146,7 @@ if __name__ == "__main__":
         val_acc = np.zeros((kfolds, EPOCHS))
         acc = np.zeros((kfolds, EPOCHS))
 
-        for feature_type in (1, 2, 3):
+        for feature_type in features:
             print(f'\tFrature type: {feature_type}')
 
             pre_start = time.time()
