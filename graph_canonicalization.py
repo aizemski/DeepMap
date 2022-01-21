@@ -7,12 +7,28 @@ from scipy.sparse import csc_matrix
 from scipy.sparse import lil_matrix
 
 
+def spectral_metric(G: nx.Graph):
+    dl = len(G)
+    sp_em = nx.spectral_layout(G, dim=int(np.log2(dl)))
+    sp_em = {s: np.asarray(t) for s, t in sp_em.items()}
+
+    val = {}
+    for n, ngs in G.adjacency():
+        s = 0.
+        it = 0
+        for ng in ngs.keys():
+            s += np.sum((sp_em[n] - sp_em[ng]) ** 2)
+            it += 1
+        val[n] = np.sqrt(s / it)
+    return val
+
+
 def compute_centrality(adj):
     n = len(adj)
     adj = adj + np.eye(n)
     cen = np.zeros(n)
     G = nx.from_numpy_matrix(adj)
-    nodes = nx.eigenvector_centrality(G, max_iter=1000, tol=1.0e-4)
+    nodes = spectral_metric(G)
     for i in range(len(nodes)):
         cen[i] = nodes[i]
 
