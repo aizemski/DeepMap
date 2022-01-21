@@ -184,7 +184,7 @@ if __name__ == "__main__":
                 print(mean_acc[i])
             end = time.time()
 
-            with open(f'{OUTPUT_DIR}{ds_name}_{feature_type}.json', 'w') as file:
+            with open(f'{OUTPUT_DIR}{ds_name}-simple_{feature_type}.json', 'w') as file:
                 json.dump({
                     'val_acc_mean': val_acc_mean.tolist(),
                     'val_acc_std': val_acc_std.tolist(),
