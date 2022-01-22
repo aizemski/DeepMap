@@ -1,5 +1,7 @@
 import numpy as np
 import networkx as nx
+from networkx.linalg.algebraicconnectivity import fiedler_vector
+from sklearn.mixture import GaussianMixture
 import breadth_first_search as bfs
 import feature_maps as fm
 from scipy.sparse import save_npz
@@ -23,12 +25,53 @@ def spectral_metric(G: nx.Graph):
     return val
 
 
+def fiedler_metric(G: nx.Graph):
+    fiedler_np = np.ones(len(G), dtype=np.float)
+    for i, nodes in enumerate(nx.algorithms.components.connected_components(G)):
+        # print(nodes)
+        if len(nodes) >= 3:
+            g = G.subgraph(nodes)
+            fiedler = fiedler_vector(g)
+            # print(fiedler)
+            # print(len(g), len(fiedler))
+            m_score, m_em, m_means = -np.inf, None, None
+            for n in range(1, int(np.log2(len(g))) + 1):
+                em = GaussianMixture(n_components=n, max_iter=1000, tol=1.e-5)
+                data = [[f] for f in fiedler]
+                em.fit(data)
+                score = em.score(data)
+                means = [m[0] for m in em.means_]
+                # print(score, means)
+                if m_score < score:
+                    m_score, m_em, m_means = score, em, means
+            fv = np.array([fiedler for _ in m_means]).T
+            m = np.array(m_means)
+            # print(fv, m)
+            d = (fv - m) ** 2
+            # print(d)
+            b = np.min(d, axis=1)
+            # b = b/np.max(b)
+            # print(b)
+            # sc = -b + np.max(b)
+            # sc = sc/np.max(sc)
+            # print(sc)
+            fiedler_np[list(nodes)] = b
+    # print(fiedler_np)
+    fiedler_np = -fiedler_np + np.max(fiedler_np[fiedler_np != 1.])
+    fiedler_np = fiedler_np / np.max(fiedler_np)
+    # print(fiedler_np)
+    return {i: s for i, s in enumerate(fiedler_np)}
+
+
 def compute_centrality(adj):
     n = len(adj)
     adj = adj + np.eye(n)
     cen = np.zeros(n)
     G = nx.from_numpy_matrix(adj)
-    nodes = spectral_metric(G)
+    # for nodes in nx.algorithms.components.connected_components(G)
+    # nodes = nx.eigenvector_centrality(G)
+    nodes = fiedler_metric(G)
+    # print(len(list(nx.algorithms.components.connected_components(G))))
     for i in range(len(nodes)):
         cen[i] = nodes[i]
 
